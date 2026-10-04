@@ -1,0 +1,12 @@
+# Dependabot opens pull requests when a pinned action or a Python dependency has a new
+# release — so SHA-pinned actions don't silently rot. Every update goes through CI.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+  - package-ecosystem: uv
+    directory: /
+    schedule:
+      interval: weekly

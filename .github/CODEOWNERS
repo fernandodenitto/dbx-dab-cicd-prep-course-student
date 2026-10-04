@@ -1,0 +1,8 @@
+# Who must review what. GitHub requests a review from the owners of every file a pull
+# request touches. Replace @fernandodenitto with your GitHub user or team.
+
+*                       @fernandodenitto
+
+# The pipeline itself and this file: changes here change how everything is released.
+/.github/               @fernandodenitto
+/databricks.yml         @fernandodenitto
