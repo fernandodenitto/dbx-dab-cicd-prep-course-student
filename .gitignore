@@ -1,0 +1,19 @@
+# Bundle deploy state and build output — never committed
+.databricks/
+build/
+dist/
+*.egg-info/
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+
+# Editors / OS
+.vscode/
+.idea/
+.DS_Store
