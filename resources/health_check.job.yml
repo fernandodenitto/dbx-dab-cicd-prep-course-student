@@ -1,0 +1,17 @@
+# The smallest useful job: proves a deploy reached the workspace and that
+# serverless compute can run our code. Later lessons turn it into a smoke test.
+
+resources:
+  jobs:
+    health_check:
+      name: lakeshore-platform-health-check
+
+      parameters:
+        - name: target
+          default: ${bundle.target}
+
+      tasks:
+        - task_key: health_check
+          # No cluster defined → the task runs on serverless compute.
+          notebook_task:
+            notebook_path: ../src/notebooks/health_check.py
