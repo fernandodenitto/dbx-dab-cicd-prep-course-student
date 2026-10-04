@@ -26,6 +26,26 @@ git diff s02-l02 s02-l03       # what one lesson changed
 
 Fell behind? Copy the files from the tag of the lesson you are about to start.
 
+## Project layout
+
+```
+databricks.yml        bundle entry point: name, CLI pin, includes, targets
+resources/            one YAML file per resource (jobs, pipelines, schemas…)
+src/                  the code those resources run
+tests/                unit tests (pytest)
+.github/workflows/    the CI/CD pipeline
+pyproject.toml        Python project + dev tooling (ruff, yamllint, …), managed with uv
+```
+
+Day to day:
+
+```bash
+uv sync                           # create .venv with the dev tools
+uv run ruff check . && uv run yamllint .
+databricks bundle validate        # needs a Databricks login
+databricks bundle deploy          # dev target, prefixed with [dev <you>]
+```
+
 ## What you need
 
 - A **Databricks Free Edition** workspace — free, no cloud account
