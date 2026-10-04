@@ -9,7 +9,7 @@ resources:
       # Every morning at 06:30 UTC. No pause_status here: development mode deploys
       # every schedule PAUSED, so a dev copy never fires on its own.
       schedule:
-        quartz_cron_expresion: "0 30 6 * * ?"
+        quartz_cron_expression: "0 30 6 * * ?"
         timezone_id: UTC
 
       parameters:
