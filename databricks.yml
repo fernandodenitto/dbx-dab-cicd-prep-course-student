@@ -1,0 +1,23 @@
+# Lakeshore Outfitters — data platform. Declarative Automation Bundle (formerly Databricks Asset Bundle).
+# This file is the entry point: the CLI looks for it at the root of the project.
+
+bundle:
+  # The name is part of the deploy path (.bundle/<name>/<target>), so it must be unique
+  # per workspace — two bundles with the same name and target overwrite each other.
+  name: lakeshore-platform
+  # Everyone who deploys this bundle — you, a teammate, the CI runner — must use a CLI
+  # at least this recent. Bundle behaviour changes between releases; pinning makes
+  # "works on my machine" a version mismatch the CLI catches for you.
+  databricks_cli_version: ">= 1.19.0"
+
+# Every resource definition lives in its own file under resources/.
+include:
+  - resources/*.yml
+
+targets:
+  # No workspace.host on purpose: the CLI takes the workspace from your profile
+  # (DATABRICKS_CONFIG_PROFILE) or, in CI, from DATABRICKS_HOST. This repository is
+  # public — a host written here would be published.
+  dev:
+    mode: development
+    default: true
