@@ -1,0 +1,47 @@
+# Continuous integration: runs on every pull request to main and on every push to main.
+# No secrets yet — everything here works without a Databricks login.
+name: ci
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+# One run per branch: a new push cancels the run it made obsolete.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+# The GITHUB_TOKEN gets read access only. Jobs ask for more when they need it.
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: lint
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Third-party actions are pinned to a full commit SHA (the tag is in the comment):
+      # a tag can be moved, a SHA cannot.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
+      - uses: databricks/setup-cli@9230f12203ef173d0b901846f62a55ce997efef7  # v1.19.0
+
+      - name: Install dev tools
+        run: uv sync --locked
+
+      - name: Python lint
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+
+      - name: YAML lint
+        run: uv run yamllint --strict .
+
+      - name: Bundle schema check (no credentials needed)
+        run: |
+          databricks bundle schema > "$RUNNER_TEMP/bundle-schema.json"
+          uv run check-jsonschema --schemafile "$RUNNER_TEMP/bundle-schema.json" \
+            databricks.yml resources/*.yml
