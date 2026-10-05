@@ -26,8 +26,7 @@ jobs:
       # Third-party actions are pinned to a full commit SHA (the tag is in the comment):
       # a tag can be moved, a SHA cannot.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
-      - uses: databricks/setup-cli@9230f12203ef173d0b901846f62a55ce997efef7  # v1.19.0
+      - uses: ./.github/actions/setup
 
       - name: Install dev tools
         run: uv sync --locked
@@ -87,7 +86,7 @@ jobs:
       DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-      - uses: databricks/setup-cli@9230f12203ef173d0b901846f62a55ce997efef7  # v1.19.0
+      - uses: ./.github/actions/setup
 
       - name: Who am I?
         run: databricks current-user me --output json | jq -r '"\(.displayName) (\(.userName))"'
@@ -120,8 +119,7 @@ jobs:
       DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
-      - uses: databricks/setup-cli@9230f12203ef173d0b901846f62a55ce997efef7  # v1.19.0
+      - uses: ./.github/actions/setup
 
       # What merging this PR would change in staging. Plan builds the wheel, so uv is needed.
       - name: Plan staging
