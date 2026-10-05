@@ -40,6 +40,9 @@
             "context": "lint"
           },
           {
+            "context": "unit-tests"
+          },
+          {
             "context": "validate"
           }
         ]
