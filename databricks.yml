@@ -20,6 +20,9 @@ artifacts:
     type: whl
     build: uv build --wheel
     path: .
+    # Append a build timestamp to the wheel version (0.1.0 -> 0.1.0+<timestamp>), so every
+    # deploy ships a distinct version and no environment reuses a stale install.
+    dynamic_version: true
 
 variables:
   # Simple variable: a string, set per target below.
@@ -67,6 +70,8 @@ permissions:
 presets:
   tags:
     environment: ${bundle.target}
+    # Which commit is running? Answerable from the job page, in every environment.
+    git_commit: ${bundle.git.commit}
 
 # One workspace, three environments. What changes between them is decided here, and
 # only here: the mode, the catalog, and (for production modes) the single deploy path.
