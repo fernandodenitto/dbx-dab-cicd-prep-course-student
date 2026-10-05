@@ -40,6 +40,9 @@ jobs:
       - name: YAML lint
         run: uv run yamllint --strict .
 
+      - name: Dashboards don't pin a catalog or schema
+        run: uv run python scripts/check_dashboards.py
+
       - name: Bundle schema check (no credentials needed)
         run: |
           databricks bundle schema > "$RUNNER_TEMP/bundle-schema.json"
