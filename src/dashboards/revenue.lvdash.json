@@ -6,6 +6,15 @@
       "queryLines": [
         "SELECT order_date, n_orders, revenue FROM orders_by_day ORDER BY order_date"
       ]
+    },
+    {
+      "name": "ds_refunds",
+      "displayName": "Refunds by reason",
+      "queryLines": [
+        "SELECT reason, n_refunds, refunded ",
+        "FROM refunds_by_reason ",
+        "ORDER BY refunded DESC"
+      ]
     }
   ],
   "pages": [
@@ -266,6 +275,72 @@
               "version": 2,
               "widgetType": "table"
             }
+          }
+        },
+        {
+          "widget": {
+            "name": "refunds-by-reason",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_refunds",
+                  "fields": [
+                    {
+                      "name": "reason",
+                      "expression": "`reason`"
+                    },
+                    {
+                      "name": "sum(refunded)",
+                      "expression": "SUM(`refunded`)"
+                    }
+                  ],
+                  "disaggregated": false
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "reason",
+                  "scale": {
+                    "type": "categorical",
+                    "sort": {
+                      "by": "y-reversed"
+                    }
+                  },
+                  "displayName": "Reason"
+                },
+                "y": {
+                  "fieldName": "sum(refunded)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "Refunded",
+                  "format": {
+                    "type": "number-currency",
+                    "currencyCode": "USD",
+                    "abbreviation": "compact",
+                    "decimalPlaces": {
+                      "type": "max",
+                      "places": 1
+                    }
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Refunds by reason"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 17,
+            "width": 12,
+            "height": 6
           }
         }
       ],

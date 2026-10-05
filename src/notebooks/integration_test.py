@@ -36,6 +36,13 @@ check(schema.get("order_date") == "date", f"orders_by_day.order_date is date ({s
 check(schema.get("n_orders") == "bigint", "orders_by_day.n_orders is bigint")
 check(schema.get("revenue") == "double", "orders_by_day.revenue is double")
 
+# 2b. Capstone: the refunds contract.
+refunds_schema = spark.table(f"{gold}.refunds_by_reason").schema
+refunds = {f.name: f.dataType.simpleString() for f in refunds_schema}
+check(refunds.get("reason") == "string", f"refunds_by_reason.reason is string ({refunds})")
+check(refunds.get("n_refunds") == "bigint", "refunds_by_reason.n_refunds is bigint")
+check(refunds.get("refunded") == "double", "refunds_by_reason.refunded is double")
+
 # 3. Data arrived and is plausible.
 stats = spark.sql(f"SELECT count(*) AS days, min(revenue) AS low FROM {gold}.orders_by_day").first()
 check(stats.days > 0, f"orders_by_day has rows ({stats.days} days)")
