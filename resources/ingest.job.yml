@@ -22,6 +22,11 @@ resources:
           # Wheel tasks on serverless need an environment: which Python runtime,
           # which dependencies. Here: environment version 5 and our own wheel.
           environment_key: default
+          # Landing files is idempotent (same batch, same file name), so retrying is safe.
+          # Retries live HERE, on the task that does the work: set on the daily job's
+          # run_job_task they were silently dropped by the Jobs API (v0.2.0).
+          max_retries: 2
+          min_retry_interval_millis: 60000
 
       environments:
         - environment_key: default
