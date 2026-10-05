@@ -12,6 +12,11 @@ resources:
       serverless: true
       root_path: ../src/pipeline
 
+      # A pipeline owns its streaming tables and materialized views: destroying it can
+      # delete them. In prod (protect_data: true) the CLI refuses any plan that would.
+      lifecycle:
+        prevent_destroy: ${var.protect_data}
+
       libraries:
         - glob:
             # The API rejects single-asterisk globs; "**" includes every file below.
