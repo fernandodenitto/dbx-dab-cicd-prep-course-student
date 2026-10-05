@@ -45,3 +45,32 @@ jobs:
           databricks bundle schema > "$RUNNER_TEMP/bundle-schema.json"
           uv run check-jsonschema --schemafile "$RUNNER_TEMP/bundle-schema.json" \
             databricks.yml resources/*.yml
+
+  validate:
+    name: validate
+    needs: lint
+    # Secrets are never given to workflows triggered from forks, so skip there instead of
+    # failing. A job skipped by `if:` reports success to required checks.
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    # Use the staging environment's secrets without recording a "deployment":
+    # validating is not deploying.
+    environment:
+      name: staging
+      deployment: false
+    env:
+      # OAuth machine-to-machine: the CLI exchanges client ID + secret for a
+      # short-lived token. No personal token anywhere.
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: databricks/setup-cli@9230f12203ef173d0b901846f62a55ce997efef7  # v1.19.0
+
+      - name: Who am I?
+        run: databricks current-user me --output json | jq -r '"\(.displayName) (\(.userName))"'
+
+      - name: Validate the staging target
+        run: databricks bundle validate --strict --target staging
