@@ -32,6 +32,12 @@ variables:
     description: Application ID of the service principal that runs this target's jobs
     default: ""   # unused in dev: development deploys run as the developer
 
+  # In production, data-holding objects (schemas, volumes) can't be deleted by a deploy
+  # or a destroy: the CLI refuses until a reviewed pull request turns this off.
+  protect_data:
+    description: Set lifecycle.prevent_destroy on schemas and volumes
+    default: false
+
   # Complex variable: a map (or a list) instead of a string.
   tags:
     description: Tags on every job of the platform — who owns it, what it belongs to
@@ -106,6 +112,7 @@ targets:
         level: CAN_MANAGE
     variables:
       catalog: lakeshore_prod
+      protect_data: true
       run_as_sp:
         lookup:
           service_principal: sp-lakeshore-prod
