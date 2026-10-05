@@ -57,3 +57,26 @@ def test_compare_catches_a_new_delete(tmp_path, capsys):
 
 def test_cli_usage(capsys):
     assert plan_report.main([]) == 2
+
+
+def test_drift_ignores_planned_changes(tmp_path):
+    planned = {"action": "update", "old": "a.whl", "new": "b.whl", "remote": "a.whl"}
+    plan = {"resources.jobs.ingest": {"action": "update", "changes": {"dependencies": planned}}}
+    assert plan_report.drift(write(tmp_path, "p.json", plan)) == 0
+
+
+def test_drift_catches_workspace_edits(tmp_path, capsys):
+    edited = {"action": "update", "remote": 60}
+    unlocked = {"action": "update", "old": "UI_LOCKED", "new": "UI_LOCKED", "remote": "EDITABLE"}
+    changes = {"timeout_seconds": edited, "edit_mode": unlocked}
+    plan = {"resources.jobs.daily": {"action": "update", "changes": changes}}
+    assert plan_report.drift(write(tmp_path, "p.json", plan)) == 1
+    out = capsys.readouterr().out
+    assert "timeout_seconds: deployed=None workspace=60" in out
+    assert "edit_mode" in out
+
+
+def test_drift_ignores_server_side_defaults(tmp_path):
+    default = {"action": "skip", "remote": "ALL_SUCCESS"}
+    plan = {"resources.jobs.daily": {"action": "skip", "changes": {"run_if": default}}}
+    assert plan_report.drift(write(tmp_path, "p.json", plan)) == 0

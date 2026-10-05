@@ -2,6 +2,7 @@
 
     python scripts/plan_report.py summary plan.json [title]       # markdown for PRs / summaries
     python scripts/plan_report.py compare approved.json new.json  # exit 1 if actions differ
+    python scripts/plan_report.py drift plan.json                 # exit 1 on remote drift
 
 "compare" looks at WHAT happens to WHICH resource (create / update / delete / recreate),
 not at field values: a new wheel timestamp or a new commit tag is expected between two
@@ -58,6 +59,28 @@ def compare(approved_path, fresh_path):
     return 1
 
 
+def drift(path):
+    """Fields whose value in the workspace differs from what was last deployed.
+
+    Planned changes (new wheel, new commit tag) have old != new but remote == old: not drift.
+    Someone editing the workspace makes remote != old: drift. Fields the plan marks "skip"
+    (server-side defaults, IDs, timestamps) are ignored.
+    """
+    found = []
+    for key, entry in load(path).items():
+        for field, change in (entry.get("changes") or {}).items():
+            # "skip" entries are fields the server fills in (defaults, IDs, timestamps).
+            if change.get("action") == "skip" or "remote" not in change:
+                continue
+            if change.get("remote") != change.get("old"):
+                found.append((key, field, change.get("old"), change.get("remote")))
+    for key, field, old, remote in found:
+        print(f"DRIFT {key} {field}: deployed={old!r} workspace={remote!r}")
+    if not found:
+        print("No drift: the workspace matches the last deployment.")
+    return 1 if found else 0
+
+
 def main(argv=None):
     args = sys.argv[1:] if argv is None else argv
     if args[:1] == ["summary"] and len(args) >= 2:
@@ -65,6 +88,8 @@ def main(argv=None):
         return 0
     if args[:1] == ["compare"] and len(args) == 3:
         return compare(args[1], args[2])
+    if args[:1] == ["drift"] and len(args) == 2:
+        return drift(args[1])
     print(__doc__)
     return 2
 
