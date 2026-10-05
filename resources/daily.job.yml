@@ -1,0 +1,34 @@
+# The platform's daily run: land new files, refresh the pipeline, gate on quality.
+# Every task points at another bundle resource by reference, never by ID.
+
+resources:
+  jobs:
+    daily:
+      name: lakeshore-platform-daily
+      tags: ${var.tags}
+
+      # 06:00 UTC. Paused in dev (mode) and staging (preset); live in prod.
+      schedule:
+        quartz_cron_expression: "0 0 6 * * ?"
+        timezone_id: UTC
+
+      tasks:
+        - task_key: ingest
+          run_job_task:
+            job_id: ${resources.jobs.ingest.id}
+
+        - task_key: refresh_orders
+          depends_on:
+            - task_key: ingest
+          pipeline_task:
+            pipeline_id: ${resources.pipelines.orders.id}
+
+        - task_key: quality_gate
+          depends_on:
+            - task_key: refresh_orders
+          notebook_task:
+            notebook_path: ../src/notebooks/quality_gate.py
+            base_parameters:
+              catalog: ${var.catalog}
+              silver_schema: ${resources.schemas.silver.name}
+              gold_schema: ${resources.schemas.gold.name}
