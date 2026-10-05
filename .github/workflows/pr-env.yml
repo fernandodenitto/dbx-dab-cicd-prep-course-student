@@ -1,0 +1,71 @@
+# Ephemeral environment per pull request. Opened or updated: deploy the PR's code to its
+# own prefixed copy in the dev catalog and dry-run the pipeline — the one check that can
+# only run against deployed code. Closed or merged: destroy it.
+name: pr-env
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened, closed]
+
+# One run at a time per PR; a newer push supersedes a deploy in progress.
+concurrency:
+  group: pr-env-${{ github.event.pull_request.number }}
+  cancel-in-progress: ${{ github.event.action != 'closed' }}
+
+permissions:
+  contents: read
+
+env:
+  BUNDLE_VAR_pr_number: ${{ github.event.pull_request.number }}
+
+jobs:
+  deploy:
+    name: pr-env-deploy
+    if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment:
+      name: staging
+      deployment: false
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: ./.github/actions/setup
+
+      - name: Deploy the PR environment
+        run: databricks bundle deploy --target pr
+
+      # A brand-new environment has no data, and the pipeline can't infer a schema from an
+      # empty folder (first run of this workflow failed exactly there). Seed it first.
+      - name: Seed the landing volume
+        run: databricks bundle run --target pr ingest
+
+      # The pipeline as written in THIS pull request, validated by the platform.
+      - name: Pipeline dry run
+        run: databricks bundle run --target pr orders --validate-only
+
+  destroy:
+    name: pr-env-destroy
+    if: github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: staging
+      deployment: false
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: ./.github/actions/setup
+
+      # --auto-approve is right HERE and nowhere else: this environment is disposable by
+      # design, lives only in the dev catalog, and nobody is there to answer a prompt.
+      # The same identity that deployed it destroys it.
+      - name: Destroy the PR environment
+        run: databricks bundle destroy --target pr --auto-approve
