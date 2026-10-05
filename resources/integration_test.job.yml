@@ -1,0 +1,17 @@
+# Integration tests against a deployed environment. CD runs it in staging after every
+# deploy; a failure stops the release train before production.
+
+resources:
+  jobs:
+    integration_test:
+      name: lakeshore-platform-integration-test
+      tags: ${var.tags}
+
+      tasks:
+        - task_key: integration_test
+          notebook_task:
+            notebook_path: ../src/notebooks/integration_test.py
+            base_parameters:
+              catalog: ${var.catalog}
+              landing_schema: ${resources.schemas.landing.name}
+              gold_schema: ${resources.schemas.gold.name}
