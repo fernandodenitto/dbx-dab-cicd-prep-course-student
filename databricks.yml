@@ -54,6 +54,11 @@ variables:
     description: Set lifecycle.prevent_destroy on schemas and volumes
     default: false
 
+  # Set by CI for the `pr` target: the pull request number.
+  pr_number:
+    description: Pull request number for ephemeral PR environments
+    default: ""
+
   # Pipeline names must be unique in a workspace (job names needn't be). Staging and prod
   # share one Free Edition workspace, so staging's pipeline gets a label — the first prod
   # release failed on exactly this. With separate workspaces you wouldn't need it.
@@ -97,6 +102,25 @@ targets:
     # Your dev copy is yours: you manage it, the groups above can still see it.
     permissions:
       - user_name: ${workspace.current_user.userName}
+        level: CAN_MANAGE
+    variables:
+      catalog: lakeshore_dev
+
+  # Ephemeral environment per pull request: deployed by CI (staging service principal)
+  # when a PR opens or changes, destroyed when it closes. Lives in the dev catalog.
+  pr:
+    # No mode: development mode insists the prefix contains the deployer's user name.
+    # A mode is just a bundle of presets — here we pick the ones we want by hand.
+    workspace:
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/pr-${var.pr_number}
+    presets:
+      # Replaces development mode's "[dev <user>]": every PR gets its own names, schemas
+      # included (pr_<n>_bronze, ...), so PRs never collide with each other or with you.
+      name_prefix: "[pr-${var.pr_number}] "
+      trigger_pause_status: PAUSED
+      pipelines_development: true
+    permissions:
+      - service_principal_name: ${workspace.current_user.userName}
         level: CAN_MANAGE
     variables:
       catalog: lakeshore_dev
