@@ -18,6 +18,13 @@ permissions:
 jobs:
   deploy:
     name: deploy-staging
+    # Free Edition allows very little serverless compute at once: a PR environment and the
+    # staging deploy running pipelines together failed with RESOURCE_EXHAUSTED. Every job
+    # that runs Databricks compute joins one repository-wide queue (FIFO, nothing cancelled).
+    concurrency:
+      group: databricks-compute
+      cancel-in-progress: false
+      queue: max
     runs-on: ubuntu-latest
     timeout-minutes: 45
     # A real deployment: GitHub records which commit is in staging, and when.
