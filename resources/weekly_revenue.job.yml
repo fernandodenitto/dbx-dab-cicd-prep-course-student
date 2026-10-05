@@ -1,0 +1,23 @@
+# Adopted from a job an analyst built in the UI ("weekly revenue report").
+# Generated with `databricks bundle generate job`, then cleaned up: generator noise
+# removed, the explicit pause_status dropped (it would override our presets and keep
+# the job paused in prod), and the notebook parameterized instead of hardcoding names.
+
+resources:
+  jobs:
+    weekly_revenue:
+      name: lakeshore-platform-weekly-revenue
+      tags: ${var.tags}
+
+      # Mondays 07:00, Rome time — kept from the original job.
+      schedule:
+        quartz_cron_expression: "0 0 7 ? * MON"
+        timezone_id: Europe/Rome
+
+      tasks:
+        - task_key: weekly_revenue
+          notebook_task:
+            notebook_path: ../src/notebooks/weekly_revenue.py
+            base_parameters:
+              catalog: ${var.catalog}
+              gold_schema: ${resources.schemas.gold.name}
