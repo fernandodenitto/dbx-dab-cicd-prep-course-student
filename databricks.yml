@@ -34,6 +34,12 @@ variables:
       project: lakeshore-platform
       owner: data-platform
 
+# Presets: settings applied to every resource the bundle deploys, so they can't be
+# forgotten on the next job someone adds. Targets can add their own on top.
+presets:
+  tags:
+    environment: ${bundle.target}
+
 # One workspace, three environments. What changes between them is decided here, and
 # only here: the mode, the catalog, and (for production modes) the single deploy path.
 # No workspace.host anywhere: the CLI takes the workspace from your profile or, in CI,
@@ -53,6 +59,9 @@ targets:
       # single copy lives. Deployed by a service principal, this resolves to the SP's
       # own home folder.
       root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+    presets:
+      # Staging runs when CI runs it — never because the clock says so.
+      trigger_pause_status: PAUSED
     variables:
       catalog: lakeshore_staging
 
