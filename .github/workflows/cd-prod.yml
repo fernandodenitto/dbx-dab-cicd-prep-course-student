@@ -37,14 +37,19 @@ jobs:
       DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
       DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
     steps:
+      # Tooling (setup action, scripts) from the workflow's own commit; the bundle from the
+      # release tag, in ./release. Deploying an old tag (a rollback) must not depend on
+      # the CI files that tag happened to contain.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          ref: ${{ env.RELEASE_REF }}
+          fetch-depth: 0
       - uses: ./.github/actions/setup
+      - name: Check out the release
+        run: git worktree add release "$RELEASE_REF"
 
       - name: Plan prod
         run: |
-          databricks bundle plan --target prod --output json > plan.json
+          (cd release && databricks bundle plan --target prod --output json) > plan.json
           uv run python scripts/plan_report.py summary plan.json "Plan for prod — ${RELEASE_REF}" \
             >> "$GITHUB_STEP_SUMMARY"
 
@@ -66,10 +71,15 @@ jobs:
       DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
       DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
     steps:
+      # Tooling (setup action, scripts) from the workflow's own commit; the bundle from the
+      # release tag, in ./release. Deploying an old tag (a rollback) must not depend on
+      # the CI files that tag happened to contain.
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
         with:
-          ref: ${{ env.RELEASE_REF }}
+          fetch-depth: 0
       - uses: ./.github/actions/setup
+      - name: Check out the release
+        run: git worktree add release "$RELEASE_REF"
       - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
         with:
           name: approved-plan
@@ -78,15 +88,17 @@ jobs:
       # to continue if the actions differ from what the reviewer saw.
       - name: Check the plan still matches the approval
         run: |
-          databricks bundle plan --target prod --output json > fresh.json
+          (cd release && databricks bundle plan --target prod --output json) > fresh.json
           uv run python scripts/plan_report.py compare plan.json fresh.json
 
       # Not `deploy --plan plan.json`: on CLI 1.19.0 that applies the plan without
       # uploading the wheel the plan refers to (see lesson 9.4).
       - name: Deploy
+        working-directory: release
         run: databricks bundle deploy --target prod --fail-on-active-runs
 
       - name: Smoke test
+        working-directory: release
         run: databricks bundle run --target prod health_check
 
       - name: Record what was released
