@@ -1,0 +1,26 @@
+# The orders pipeline (Lakeflow Spark Declarative Pipelines, formerly Delta Live Tables):
+# landing volume -> bronze -> silver -> gold. Same SQL in every environment; the
+# configuration below is what makes it write to dev, staging or prod.
+
+resources:
+  pipelines:
+    orders:
+      name: lakeshore-platform-orders
+      catalog: ${var.catalog}
+      # Default schema for unqualified names; our SQL always names its schema explicitly.
+      schema: ${resources.schemas.silver.name}
+      serverless: true
+      root_path: ../src/pipeline
+
+      libraries:
+        - glob:
+            # The API rejects single-asterisk globs; "**" includes every file below.
+            include: ../src/pipeline/**
+
+      # Read in SQL as ${key}. Schema names come from resource references, so dev's
+      # prefixed schemas (dev_<you>_bronze, ...) are picked up automatically.
+      configuration:
+        landing_path: /Volumes/${var.catalog}/${resources.schemas.landing.name}/${resources.volumes.landing_files.name}
+        bronze_schema: ${resources.schemas.bronze.name}
+        silver_schema: ${resources.schemas.silver.name}
+        gold_schema: ${resources.schemas.gold.name}
