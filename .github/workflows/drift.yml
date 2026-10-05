@@ -1,0 +1,60 @@
+# Nightly drift detection: does production still match the release that was deployed?
+# Plans the latest release tag against prod and fails — and opens an issue — if anything
+# was changed in the workspace by hand.
+name: drift
+
+on:
+  schedule:
+    - cron: "17 5 * * *"   # 05:17 UTC, before the 06:00 production run
+  workflow_dispatch:
+
+concurrency:
+  group: drift
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write   # to open an issue when drift is found
+
+jobs:
+  drift:
+    name: drift-prod
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    # Read-only use of the prod identity: plan, never deploy. No approval needed.
+    environment: prod-plan
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+    steps:
+      # Tooling (scripts, setup action) from main; bundle config from the deployed release.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          fetch-depth: 0
+      - uses: ./.github/actions/setup
+
+      - name: Find the deployed release
+        id: release
+        run: echo "tag=$(git describe --tags --abbrev=0 --match 'v*')" >> "$GITHUB_OUTPUT"
+
+      - name: Plan prod at ${{ steps.release.outputs.tag }}
+        run: |
+          git worktree add release "${{ steps.release.outputs.tag }}"
+          (cd release && databricks bundle plan --target prod --output json) > plan.json
+
+      - name: Compare the workspace with the release
+        run: uv run python scripts/plan_report.py drift plan.json | tee drift.txt
+
+      - name: Open an issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          RELEASE="${{ steps.release.outputs.tag }}"
+          {
+            echo "The nightly drift check found production changes that are not in release \`$RELEASE\`:"
+            echo; echo '```'; cat drift.txt; echo '```'; echo
+            echo "Fix: put the change in a pull request, or redeploy the release to revert it."
+          } > issue.md
+          gh issue create --title "Drift detected in prod ($(date -u +%F))" --body-file issue.md
