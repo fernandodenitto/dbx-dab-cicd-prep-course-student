@@ -43,13 +43,13 @@ jobs:
         run: databricks bundle deploy --target staging --fail-on-active-runs
 
       - name: Pipeline dry run
-        run: databricks bundle run --target staging orders --validate-only
+        run: scripts/with_retry.sh databricks bundle run --target staging orders --validate-only
 
       - name: Daily job (ingest, pipeline, quality gate)
-        run: databricks bundle run --target staging daily
+        run: scripts/with_retry.sh databricks bundle run --target staging daily
 
       - name: Integration tests
-        run: databricks bundle run --target staging integration_test
+        run: scripts/with_retry.sh databricks bundle run --target staging integration_test
 
       - name: Record what was released
         run: echo "Deployed \`${GITHUB_SHA::7}\` to **staging** and passed integration tests." >> "$GITHUB_STEP_SUMMARY"

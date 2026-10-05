@@ -110,7 +110,7 @@ jobs:
 
       - name: Smoke test
         working-directory: release
-        run: databricks bundle run --target prod health_check
+        run: ../scripts/with_retry.sh databricks bundle run --target prod health_check
 
       - name: Record what was released
         run: echo "Released **${RELEASE_REF}** to **prod**." >> "$GITHUB_STEP_SUMMARY"

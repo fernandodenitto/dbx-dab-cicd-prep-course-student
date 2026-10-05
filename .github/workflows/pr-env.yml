@@ -49,11 +49,11 @@ jobs:
       # A brand-new environment has no data, and the pipeline can't infer a schema from an
       # empty folder (first run of this workflow failed exactly there). Seed it first.
       - name: Seed the landing volume
-        run: databricks bundle run --target pr ingest
+        run: scripts/with_retry.sh databricks bundle run --target pr ingest
 
       # The pipeline as written in THIS pull request, validated by the platform.
       - name: Pipeline dry run
-        run: databricks bundle run --target pr orders --validate-only
+        run: scripts/with_retry.sh databricks bundle run --target pr orders --validate-only
 
   destroy:
     name: pr-env-destroy
