@@ -1,0 +1,305 @@
+{
+  "datasets": [
+    {
+      "displayName": "Daily orders",
+      "name": "ds_daily",
+      "queryLines": [
+        "SELECT order_date, n_orders, revenue FROM orders_by_day ORDER BY order_date"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "displayName": "Overview",
+      "layout": [
+        {
+          "position": {
+            "height": 1,
+            "width": 12,
+            "x": 0,
+            "y": 0
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "# Lakeshore Outfitters \u2014 revenue"
+              ]
+            },
+            "name": "title"
+          }
+        },
+        {
+          "position": {
+            "height": 1,
+            "width": 12,
+            "x": 0,
+            "y": 1
+          },
+          "widget": {
+            "multilineTextboxSpec": {
+              "lines": [
+                "Orders and revenue from the gold layer, refreshed by the daily job. Same file in dev, staging and prod."
+              ]
+            },
+            "name": "subtitle"
+          }
+        },
+        {
+          "position": {
+            "height": 3,
+            "width": 6,
+            "x": 0,
+            "y": 2
+          },
+          "widget": {
+            "name": "kpi-revenue",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_daily",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "expression": "SUM(`revenue`)",
+                      "name": "sum(revenue)"
+                    },
+                    {
+                      "expression": "DATE_TRUNC(\"WEEK\", `order_date`)",
+                      "name": "weekly(order_date)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "period": {
+                  "fieldName": "weekly(order_date)"
+                },
+                "value": {
+                  "displayName": "Revenue",
+                  "fieldName": "sum(revenue)",
+                  "format": {
+                    "abbreviation": "compact",
+                    "currencyCode": "USD",
+                    "decimalPlaces": {
+                      "places": 1,
+                      "type": "max"
+                    },
+                    "type": "number-currency"
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Revenue"
+              },
+              "version": 2,
+              "widgetType": "counter"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 3,
+            "width": 6,
+            "x": 6,
+            "y": 2
+          },
+          "widget": {
+            "name": "kpi-orders",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_daily",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "expression": "SUM(`n_orders`)",
+                      "name": "sum(n_orders)"
+                    },
+                    {
+                      "expression": "DATE_TRUNC(\"WEEK\", `order_date`)",
+                      "name": "weekly(order_date)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "period": {
+                  "fieldName": "weekly(order_date)"
+                },
+                "value": {
+                  "displayName": "Orders",
+                  "fieldName": "sum(n_orders)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Orders"
+              },
+              "version": 2,
+              "widgetType": "counter"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 6,
+            "width": 12,
+            "x": 0,
+            "y": 5
+          },
+          "widget": {
+            "name": "revenue-by-week",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_daily",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "expression": "DATE_TRUNC(\"WEEK\", `order_date`)",
+                      "name": "weekly(order_date)"
+                    },
+                    {
+                      "expression": "SUM(`revenue`)",
+                      "name": "sum(revenue)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "x": {
+                  "displayName": "Week",
+                  "fieldName": "weekly(order_date)",
+                  "scale": {
+                    "type": "temporal"
+                  }
+                },
+                "y": {
+                  "displayName": "Revenue",
+                  "fieldName": "sum(revenue)",
+                  "format": {
+                    "abbreviation": "compact",
+                    "currencyCode": "USD",
+                    "decimalPlaces": {
+                      "places": 1,
+                      "type": "max"
+                    },
+                    "type": "number-currency"
+                  },
+                  "scale": {
+                    "type": "quantitative"
+                  }
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Revenue by week"
+              },
+              "version": 3,
+              "widgetType": "bar"
+            }
+          }
+        },
+        {
+          "position": {
+            "height": 6,
+            "width": 12,
+            "x": 0,
+            "y": 11
+          },
+          "widget": {
+            "name": "daily-table",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "ds_daily",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "expression": "`order_date`",
+                      "name": "order_date"
+                    },
+                    {
+                      "expression": "`n_orders`",
+                      "name": "n_orders"
+                    },
+                    {
+                      "expression": "`revenue`",
+                      "name": "revenue"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "encodings": {
+                "columns": [
+                  {
+                    "displayName": "Day",
+                    "fieldName": "order_date"
+                  },
+                  {
+                    "displayName": "Orders",
+                    "fieldName": "n_orders"
+                  },
+                  {
+                    "displayName": "Revenue",
+                    "fieldName": "revenue"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Daily detail"
+              },
+              "version": 2,
+              "widgetType": "table"
+            }
+          }
+        }
+      ],
+      "layoutVersion": "GRID_V1",
+      "name": "overview",
+      "pageType": "PAGE_TYPE_CANVAS"
+    }
+  ],
+  "uiSettings": {
+    "theme": {
+      "canvasBackgroundColor": {
+        "dark": "#1F272D",
+        "light": "#FCFCFC"
+      },
+      "fontColor": {
+        "dark": "#E8ECF0",
+        "light": "#11171C"
+      },
+      "selectionColor": {
+        "dark": "#8ACAFF",
+        "light": "#2272B4"
+      },
+      "visualizationColors": [
+        "#1D425C",
+        "#FF7054",
+        "#FFA600",
+        "#4E5185",
+        "#99DDB4"
+      ],
+      "widgetBackgroundColor": {
+        "dark": "#11171C",
+        "light": "#FFFFFF"
+      },
+      "widgetHeaderAlignment": "LEFT"
+    }
+  }
+}
