@@ -7,6 +7,9 @@ resources:
       name: lakeshore-platform-daily
       tags: ${var.tags}
 
+      # A daily run that hasn't finished in an hour is stuck: fail it, don't let it block tomorrow.
+      timeout_seconds: 3600
+
       # 06:00 UTC. Paused in dev (mode) and staging (preset); live in prod.
       schedule:
         quartz_cron_expression: "0 0 6 * * ?"
@@ -16,6 +19,9 @@ resources:
         - task_key: ingest
           run_job_task:
             job_id: ${resources.jobs.ingest.id}
+          # Landing files is idempotent (same batch, same file name), so retrying is safe.
+          max_retries: 2
+          min_retry_interval_millis: 60000
 
         - task_key: refresh_orders
           depends_on:
