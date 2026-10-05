@@ -7,21 +7,29 @@ resources:
   schemas:
     landing:
       catalog_name: ${var.catalog}
+      lifecycle:
+        prevent_destroy: ${var.protect_data}
       name: landing
       comment: Raw files exactly as they arrive (volumes only, no tables)
 
     bronze:
       catalog_name: ${var.catalog}
+      lifecycle:
+        prevent_destroy: ${var.protect_data}
       name: bronze
       comment: Raw data as tables, append-only
 
     silver:
       catalog_name: ${var.catalog}
+      lifecycle:
+        prevent_destroy: ${var.protect_data}
       name: silver
       comment: Cleaned, typed, deduplicated
 
     gold:
       catalog_name: ${var.catalog}
+      lifecycle:
+        prevent_destroy: ${var.protect_data}
       name: gold
       comment: Business-level aggregates, read by dashboards and analysts
       grants:
@@ -33,6 +41,8 @@ resources:
   volumes:
     landing_files:
       catalog_name: ${var.catalog}
+      lifecycle:
+        prevent_destroy: ${var.protect_data}
       schema_name: ${resources.schemas.landing.name}
       name: files
       volume_type: MANAGED
