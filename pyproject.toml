@@ -28,13 +28,16 @@ dev = [
     "check-jsonschema>=0.38",
     "pytest>=8",
     "pytest-cov>=6",
+    # Python support for bundles: the CLI loads mutators.py from this environment.
+    # Keep it on the same version as the CLI pinned in databricks.yml.
+    "databricks-bundles==1.19.0",
 ]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 # Import the package from src/ directly: tests never depend on how (or whether) the
 # package was installed in the virtual environment.
-pythonpath = ["src"]
+pythonpath = ["src", "."]
 # Fail the run if less than 90% of the package is exercised by tests.
 addopts = "--cov=lakeshore --cov-report=term-missing --cov-fail-under=90"
 

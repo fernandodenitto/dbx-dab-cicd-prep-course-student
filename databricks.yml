@@ -14,6 +14,13 @@ bundle:
 include:
   - resources/*.yml
 
+# Python support for bundles: mutators.py runs on every job at deploy time (policy as
+# code). The CLI uses the project's virtual environment created by `uv sync`.
+python:
+  venv_path: .venv
+  mutators:
+    - "mutators:enforce_job_policy"
+
 # Dashboards are deployed as dashboards (resources/revenue.dashboard.yml), so their
 # JSON doesn't also need to be uploaded as a plain workspace file.
 sync:
