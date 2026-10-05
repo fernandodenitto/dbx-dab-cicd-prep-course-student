@@ -26,6 +26,12 @@ variables:
     lookup:
       warehouse: Serverless Starter Warehouse
 
+  # Who production jobs run as. Each production target looks its service principal up
+  # by display name, so no application ID is committed.
+  run_as_sp:
+    description: Application ID of the service principal that runs this target's jobs
+    default: ""   # unused in dev: development deploys run as the developer
+
   # Complex variable: a map (or a list) instead of a string.
   tags:
     description: Tags on every job of the platform — who owns it, what it belongs to
@@ -33,6 +39,15 @@ variables:
     default:
       project: lakeshore-platform
       owner: data-platform
+
+# Who may see and manage what the bundle deploys, applied to every job and pipeline.
+# Groups, not people: nobody's e-mail in a public repository, and nothing to update
+# when someone joins or leaves.
+permissions:
+  - group_name: users
+    level: CAN_VIEW
+  - group_name: admins
+    level: CAN_MANAGE
 
 # Presets: settings applied to every resource the bundle deploys, so they can't be
 # forgotten on the next job someone adds. Targets can add their own on top.
@@ -48,6 +63,10 @@ targets:
   dev:
     mode: development
     default: true
+    # Your dev copy is yours: you manage it, the groups above can still see it.
+    permissions:
+      - user_name: ${workspace.current_user.userName}
+        level: CAN_MANAGE
     variables:
       catalog: lakeshore_dev
 
@@ -62,13 +81,31 @@ targets:
     presets:
       # Staging runs when CI runs it — never because the clock says so.
       trigger_pause_status: PAUSED
+    run_as:
+      service_principal_name: ${var.run_as_sp}
+    # The service principal deploys AND runs this target: it must manage what it deploys.
+    permissions:
+      - service_principal_name: ${var.run_as_sp}
+        level: CAN_MANAGE
     variables:
       catalog: lakeshore_staging
+      run_as_sp:
+        lookup:
+          service_principal: sp-lakeshore-staging
 
   # Deployed only by CI, as the production service principal, after an approval.
   prod:
     mode: production
     workspace:
       root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+    run_as:
+      service_principal_name: ${var.run_as_sp}
+    # The service principal deploys AND runs this target: it must manage what it deploys.
+    permissions:
+      - service_principal_name: ${var.run_as_sp}
+        level: CAN_MANAGE
     variables:
       catalog: lakeshore_prod
+      run_as_sp:
+        lookup:
+          service_principal: sp-lakeshore-prod
