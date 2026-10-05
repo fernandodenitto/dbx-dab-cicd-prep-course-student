@@ -58,6 +58,10 @@ jobs:
       # Pure Python: no Databricks login, no cluster, seconds. Coverage below 90% fails.
       - name: pytest
         run: uv run pytest
+      # The same build command the bundle runs on deploy: if packaging breaks, the PR
+      # fails here, not in the middle of a deployment.
+      - name: Build the wheel
+        run: uv build --wheel
 
   validate:
     name: validate

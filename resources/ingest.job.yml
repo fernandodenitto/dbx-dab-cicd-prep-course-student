@@ -1,0 +1,31 @@
+# Lands one batch of source files in the landing volume, using the lakeshore package
+# built from this repository — the exact code the unit tests ran against.
+
+resources:
+  jobs:
+    ingest:
+      name: lakeshore-platform-ingest
+      tags: ${var.tags}
+
+      tasks:
+        - task_key: land_batch
+          python_wheel_task:
+            package_name: lakeshore
+            entry_point: lakeshore-ingest
+            parameters:
+              - --catalog
+              - ${var.catalog}
+              - --schema
+              - ${resources.schemas.landing.name}
+              - --volume
+              - ${resources.volumes.landing_files.name}
+          # Wheel tasks on serverless need an environment: which Python runtime,
+          # which dependencies. Here: environment version 5 and our own wheel.
+          environment_key: default
+
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "5"
+            dependencies:
+              - ../dist/*.whl
