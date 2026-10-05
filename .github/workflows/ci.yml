@@ -100,3 +100,38 @@ jobs:
       # deploy folder) are expected here, so no --strict; config errors still fail.
       - name: Validate prod (config only)
         run: databricks bundle validate --target prod
+
+  plan:
+    name: plan
+    needs: validate
+    # Only for pull requests from this repository (secrets), never on main.
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      pull-requests: write   # to post the plan as a comment — this job only
+    environment:
+      name: staging
+      deployment: false
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
+      - uses: databricks/setup-cli@9230f12203ef173d0b901846f62a55ce997efef7  # v1.19.0
+
+      # What merging this PR would change in staging. Plan builds the wheel, so uv is needed.
+      - name: Plan staging
+        run: databricks bundle plan --target staging --output json > plan.json
+
+      - name: Post the plan on the pull request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          uv run python scripts/plan_report.py summary plan.json "Plan for staging if this PR merges" > plan.md
+          cat plan.md >> "$GITHUB_STEP_SUMMARY"
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file plan.md \
+            --edit-last --create-if-none
