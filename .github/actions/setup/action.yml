@@ -1,13 +1,17 @@
 # One place for the toolchain every workflow needs: uv (Python, tests, wheel builds) and
 # the Databricks CLI at the version databricks.yml pins. Bump a version here, once.
 name: Set up the toolchain
-description: Install uv and the Databricks CLI (pinned)
+description: Install uv, the Databricks CLI (pinned) and the project's Python environment
 
 runs:
   using: composite
   steps:
     - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
     - uses: databricks/setup-cli@9230f12203ef173d0b901846f62a55ce997efef7  # v1.19.0
+    # The bundle loads mutators.py with the project's Python environment (.venv).
+    - name: Python environment for the bundle
+      shell: bash
+      run: uv sync --locked
     - name: Show versions
       shell: bash
       run: |

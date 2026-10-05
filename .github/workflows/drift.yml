@@ -41,6 +41,7 @@ jobs:
       - name: Plan prod at ${{ steps.release.outputs.tag }}
         run: |
           git worktree add release "${{ steps.release.outputs.tag }}"
+          (cd release && uv sync --locked)   # the release's own Python env (mutators)
           (cd release && databricks bundle plan --target prod --output json) > plan.json
 
       # pipefail: without it the step's exit code is tee's (always 0) and drift passes

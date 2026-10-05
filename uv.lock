@@ -120,6 +120,15 @@ wheels = [
 ]
 
 [[package]]
+name = "databricks-bundles"
+version = "1.19.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/1f/b3/0bb29f2ae6ff26732e965c97f95d8115906561bf52c86783020f78dc2a0f/databricks_bundles-1.19.0.tar.gz", hash = "sha256:471eb6ad97b362990d0fd9378b9c1454bb6c2bf1d85a7553f630ee66fd79881e", size = 237670, upload-time = "2026-09-30T13:12:43.62Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/ce/fa/fa4b3f878155c809cb2ce54995d56f4bf590fe4be39edf49027bf5949838/databricks_bundles-1.19.0-py3-none-any.whl", hash = "sha256:830ce00430c1fb81e148aaec6cc98fb29ac75b388b8a1e2204a74b1a881d8565", size = 593176, upload-time = "2026-09-30T13:12:42.003Z" },
+]
+
+[[package]]
 name = "idna"
 version = "3.20"
 source = { registry = "https://pypi.org/simple" }
@@ -172,6 +181,7 @@ source = { editable = "." }
 [package.dev-dependencies]
 dev = [
     { name = "check-jsonschema" },
+    { name = "databricks-bundles" },
     { name = "pytest" },
     { name = "pytest-cov" },
     { name = "ruff" },
@@ -183,6 +193,7 @@ dev = [
 [package.metadata.requires-dev]
 dev = [
     { name = "check-jsonschema", specifier = ">=0.38" },
+    { name = "databricks-bundles", specifier = "==1.19.0" },
     { name = "pytest", specifier = ">=8" },
     { name = "pytest-cov", specifier = ">=6" },
     { name = "ruff", specifier = ">=0.13" },
