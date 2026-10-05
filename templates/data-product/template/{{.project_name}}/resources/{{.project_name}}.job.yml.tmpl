@@ -1,0 +1,13 @@
+resources:
+  jobs:
+    {{.project_name}}:
+      name: {{.project_name}}
+      tags: ${var.tags}
+      timeout_seconds: 3600
+      parameters:
+        - name: catalog
+          default: ${var.catalog}
+      tasks:
+        - task_key: main
+          notebook_task:
+            notebook_path: ../src/{{.project_name}}.py

@@ -1,0 +1,12 @@
+# Databricks notebook source
+# MAGIC %md
+# MAGIC # {{.project_name}}
+# MAGIC
+# MAGIC Owned by {{.owner_team}}. The catalog arrives as a job parameter — never hardcode it.
+
+# COMMAND ----------
+
+dbutils.widgets.text("catalog", "lakeshore_dev")
+catalog = dbutils.widgets.get("catalog")
+spark.sql(f"USE CATALOG {catalog}")
+print(f"{{.project_name}} running in {catalog}")

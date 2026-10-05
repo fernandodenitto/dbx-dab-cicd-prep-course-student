@@ -26,6 +26,8 @@ python:
 sync:
   exclude:
     - src/dashboards/*.lvdash.json
+    # The project template is for `bundle init`, not for this bundle's workspace files.
+    - templates/**
 
 # Built on every deploy, uploaded with the bundle, referenced by tasks as ./dist/*.whl.
 artifacts:
