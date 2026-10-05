@@ -109,3 +109,13 @@ targets:
       run_as_sp:
         lookup:
           service_principal: sp-lakeshore-prod
+    # In production, data-holding objects can't be deleted by a deploy or a destroy:
+    # the CLI refuses until someone removes this line in a reviewed pull request.
+    resources:
+      schemas:
+        landing: {lifecycle: {prevent_destroy: true}}
+        bronze: {lifecycle: {prevent_destroy: true}}
+        silver: {lifecycle: {prevent_destroy: true}}
+        gold: {lifecycle: {prevent_destroy: true}}
+      volumes:
+        landing_files: {lifecycle: {prevent_destroy: true}}

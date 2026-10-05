@@ -1,0 +1,39 @@
+# Unity Catalog objects owned by the bundle: the four layers of the platform and the
+# volume where raw files land. The catalog comes from the target; everything inside it
+# is created — and owned — by whoever deploys: you in dev, the service principal in
+# staging and prod.
+
+resources:
+  schemas:
+    landing:
+      catalog_name: ${var.catalog}
+      name: landing
+      comment: Raw files exactly as they arrive (volumes only, no tables)
+
+    bronze:
+      catalog_name: ${var.catalog}
+      name: bronze
+      comment: Raw data as tables, append-only
+
+    silver:
+      catalog_name: ${var.catalog}
+      name: silver
+      comment: Cleaned, typed, deduplicated
+
+    gold:
+      catalog_name: ${var.catalog}
+      name: gold
+      comment: Business-level aggregates, read by dashboards and analysts
+      grants:
+        - principal: account users
+          privileges:
+            - USE_SCHEMA
+            - SELECT
+
+  volumes:
+    landing_files:
+      catalog_name: ${var.catalog}
+      schema_name: ${resources.schemas.landing.name}
+      name: files
+      volume_type: MANAGED
+      comment: Landing zone for generated source files
