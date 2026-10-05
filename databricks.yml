@@ -14,6 +14,12 @@ bundle:
 include:
   - resources/*.yml
 
+# Dashboards are deployed as dashboards (resources/revenue.dashboard.yml), so their
+# JSON doesn't also need to be uploaded as a plain workspace file.
+sync:
+  exclude:
+    - src/dashboards/*.lvdash.json
+
 # Built on every deploy, uploaded with the bundle, referenced by tasks as ./dist/*.whl.
 artifacts:
   lakeshore_wheel:
