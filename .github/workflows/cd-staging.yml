@@ -1,0 +1,49 @@
+# Continuous deployment to staging: every merge to main is deployed by the staging
+# service principal and tested against the real environment.
+name: cd-staging
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Deployments to staging queue up; they never cancel each other half-way.
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: deploy-staging
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # A real deployment: GitHub records which commit is in staging, and when.
+    environment: staging
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: astral-sh/setup-uv@c18668ad3cf93ea998bef934396af7bb5c839dc7  # v10.2.0
+      - uses: databricks/setup-cli@9230f12203ef173d0b901846f62a55ce997efef7  # v1.19.0
+
+      # No --auto-approve: if a deploy would delete data-holding resources, the CLI asks
+      # for confirmation, gets none, and the job fails. That's the behaviour we want.
+      - name: Deploy
+        run: databricks bundle deploy --target staging --fail-on-active-runs
+
+      - name: Pipeline dry run
+        run: databricks bundle run --target staging orders --validate-only
+
+      - name: Daily job (ingest, pipeline, quality gate)
+        run: databricks bundle run --target staging daily
+
+      - name: Integration tests
+        run: databricks bundle run --target staging integration_test
+
+      - name: Record what was released
+        run: echo "Deployed \`${GITHUB_SHA::7}\` to **staging** and passed integration tests." >> "$GITHUB_STEP_SUMMARY"
