@@ -5,7 +5,7 @@
 resources:
   pipelines:
     orders:
-      name: lakeshore-platform-orders
+      name: ${var.pipeline_label}lakeshore-platform-orders
       catalog: ${var.catalog}
       # Default schema for unqualified names; our SQL always names its schema explicitly.
       schema: ${resources.schemas.silver.name}

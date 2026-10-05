@@ -54,6 +54,13 @@ variables:
     description: Set lifecycle.prevent_destroy on schemas and volumes
     default: false
 
+  # Pipeline names must be unique in a workspace (job names needn't be). Staging and prod
+  # share one Free Edition workspace, so staging's pipeline gets a label — the first prod
+  # release failed on exactly this. With separate workspaces you wouldn't need it.
+  pipeline_label:
+    description: Prefix for the pipeline name in targets that share a workspace with prod
+    default: ""
+
   # Complex variable: a map (or a list) instead of a string.
   tags:
     description: Tags on every job of the platform — who owns it, what it belongs to
@@ -113,6 +120,7 @@ targets:
         level: CAN_MANAGE
     variables:
       catalog: lakeshore_staging
+      pipeline_label: "[staging] "
       run_as_sp:
         lookup:
           service_principal: sp-lakeshore-staging
