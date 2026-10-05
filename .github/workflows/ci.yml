@@ -94,6 +94,14 @@ jobs:
       - name: Validate staging (strict)
         run: databricks bundle validate --strict --target staging
 
+      # The company template must keep producing a valid bundle: render it, validate it.
+      - name: Data-product template renders and validates
+        run: |
+          echo '{"project_name": "template_check", "owner_team": "ci"}' > "$RUNNER_TEMP/tpl.json"
+          databricks bundle init ./templates/data-product \
+            --config-file "$RUNNER_TEMP/tpl.json" --output-dir "$RUNNER_TEMP/tpl"
+          cd "$RUNNER_TEMP/tpl/template_check" && databricks bundle validate --strict --target staging
+
       # prod is validated with the STAGING identity: the prod credentials stay locked
       # behind the prod environment's approval. Identity-specific findings (who owns the
       # deploy folder) are expected here, so no --strict; config errors still fail.

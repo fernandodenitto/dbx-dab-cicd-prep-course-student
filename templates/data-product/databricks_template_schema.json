@@ -1,0 +1,20 @@
+{
+  "welcome_message": "Lakeshore data product: a bundle that already follows the platform standard (pinned CLI, dev/staging/prod catalogs, service-principal run_as, owner tags, CI).",
+  "min_databricks_cli_version": "v1.19.0",
+  "properties": {
+    "project_name": {
+      "type": "string",
+      "description": "Name of the data product (lowercase, underscores)",
+      "pattern": "^[a-z][a-z0-9_]{2,40}$",
+      "pattern_match_failure_message": "Use 3-41 lowercase letters, digits or underscores, starting with a letter.",
+      "order": 1
+    },
+    "owner_team": {
+      "type": "string",
+      "description": "Team that owns it (becomes the 'owner' tag on every job)",
+      "default": "data-platform",
+      "order": 2
+    }
+  },
+  "success_message": "Created {{.project_name}}. Next: cd {{.project_name}} && databricks bundle validate"
+}

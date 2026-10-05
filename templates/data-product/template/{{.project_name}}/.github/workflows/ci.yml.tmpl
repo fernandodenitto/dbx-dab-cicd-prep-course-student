@@ -1,0 +1,22 @@
+# Minimal CI for a new data product: validate on every pull request.
+# (Go template note: GitHub's {{"{{"}} … }} expressions are escaped in the template source.)
+name: ci
+on:
+  pull_request:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    environment:
+      name: staging
+      deployment: false
+    env:
+      DATABRICKS_HOST: ${{"{{"}} secrets.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{"{{"}} secrets.DATABRICKS_CLIENT_ID }}
+      DATABRICKS_CLIENT_SECRET: ${{"{{"}} secrets.DATABRICKS_CLIENT_SECRET }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      - uses: databricks/setup-cli@9230f12203ef173d0b901846f62a55ce997efef7  # v1.19.0
+      - run: databricks bundle validate --strict --target staging
