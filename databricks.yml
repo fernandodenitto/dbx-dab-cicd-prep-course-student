@@ -15,8 +15,24 @@ include:
   - resources/*.yml
 
 variables:
+  # Simple variable: a string, set per target below.
   catalog:
     description: The Unity Catalog catalog of the environment. One catalog per environment.
+
+  # Lookup variable: we write the warehouse's NAME; the CLI resolves its ID at deploy
+  # time in whatever workspace it deploys to. No workspace-specific ID in the repo.
+  warehouse_id:
+    description: SQL warehouse for SQL tasks and dashboards
+    lookup:
+      warehouse: Serverless Starter Warehouse
+
+  # Complex variable: a map (or a list) instead of a string.
+  tags:
+    description: Tags on every job of the platform — who owns it, what it belongs to
+    type: complex
+    default:
+      project: lakeshore-platform
+      owner: data-platform
 
 # One workspace, three environments. What changes between them is decided here, and
 # only here: the mode, the catalog, and (for production modes) the single deploy path.

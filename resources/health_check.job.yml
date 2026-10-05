@@ -12,6 +12,8 @@ resources:
         quartz_cron_expression: "0 30 6 * * ?"
         timezone_id: UTC
 
+      tags: ${var.tags}
+
       parameters:
         - name: target
           default: ${bundle.target}
@@ -23,3 +25,13 @@ resources:
           # No cluster defined → the task runs on serverless compute.
           notebook_task:
             notebook_path: ../src/notebooks/health_check.py
+
+        # Same check through the SQL warehouse: proves SQL tasks work in this
+        # environment too. Job parameters reach the query as :catalog.
+        - task_key: sql_health_check
+          depends_on:
+            - task_key: health_check
+          sql_task:
+            warehouse_id: ${var.warehouse_id}
+            file:
+              path: ../src/sql/health_check.sql
