@@ -19,9 +19,6 @@ resources:
         - task_key: ingest
           run_job_task:
             job_id: ${resources.jobs.ingest.id}
-          # Landing files is idempotent (same batch, same file name), so retrying is safe.
-          max_retries: 2
-          min_retry_interval_millis: 60000
 
         - task_key: refresh_orders
           depends_on:
