@@ -14,6 +14,13 @@ bundle:
 include:
   - resources/*.yml
 
+# Built on every deploy, uploaded with the bundle, referenced by tasks as ./dist/*.whl.
+artifacts:
+  lakeshore_wheel:
+    type: whl
+    build: uv build --wheel
+    path: .
+
 variables:
   # Simple variable: a string, set per target below.
   catalog:
