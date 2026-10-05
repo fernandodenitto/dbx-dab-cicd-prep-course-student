@@ -22,6 +22,13 @@ env:
 jobs:
   deploy:
     name: pr-env-deploy
+    # Free Edition allows very little serverless compute at once: a PR environment and the
+    # staging deploy running pipelines together failed with RESOURCE_EXHAUSTED. Every job
+    # that runs Databricks compute joins one repository-wide queue (FIFO, nothing cancelled).
+    concurrency:
+      group: databricks-compute
+      cancel-in-progress: false
+      queue: max
     if: github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
     runs-on: ubuntu-latest
     timeout-minutes: 20

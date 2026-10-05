@@ -62,6 +62,13 @@ jobs:
 
   deploy:
     name: deploy-prod
+    # Free Edition allows very little serverless compute at once: a PR environment and the
+    # staging deploy running pipelines together failed with RESOURCE_EXHAUSTED. Every job
+    # that runs Databricks compute joins one repository-wide queue (FIFO, nothing cancelled).
+    concurrency:
+      group: databricks-compute
+      cancel-in-progress: false
+      queue: max
     needs: plan
     runs-on: ubuntu-latest
     timeout-minutes: 30
