@@ -14,20 +14,36 @@ bundle:
 include:
   - resources/*.yml
 
+variables:
+  catalog:
+    description: The Unity Catalog catalog of the environment. One catalog per environment.
+
+# One workspace, three environments. What changes between them is decided here, and
+# only here: the mode, the catalog, and (for production modes) the single deploy path.
+# No workspace.host anywhere: the CLI takes the workspace from your profile or, in CI,
+# from DATABRICKS_HOST. This repository is public.
 targets:
-  # No workspace.host on purpose: the CLI takes the workspace from your profile
-  # (DATABRICKS_CONFIG_PROFILE) or, in CI, from DATABRICKS_HOST. This repository is
-  # public — a host written here would be published.
   dev:
     mode: development
     default: true
+    variables:
+      catalog: lakeshore_dev
 
-  # Deployed only by CI, authenticated as the staging service principal.
-  # Production mode: real names, live schedules, and guardrails (see Section 5).
+  # Deployed only by CI, as the staging service principal, on every merge to main.
   staging:
     mode: production
     workspace:
       # Production mode insists on an explicit root path: one known place where the
-      # single staging copy lives. Deployed by the service principal, this resolves
-      # to the SP's own home folder, which no human can write to.
+      # single copy lives. Deployed by a service principal, this resolves to the SP's
+      # own home folder.
       root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+    variables:
+      catalog: lakeshore_staging
+
+  # Deployed only by CI, as the production service principal, after an approval.
+  prod:
+    mode: production
+    workspace:
+      root_path: /Workspace/Users/${workspace.current_user.userName}/.bundle/${bundle.name}/${bundle.target}
+    variables:
+      catalog: lakeshore_prod

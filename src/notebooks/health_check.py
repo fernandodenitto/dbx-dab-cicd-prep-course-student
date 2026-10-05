@@ -8,8 +8,12 @@
 # COMMAND ----------
 
 dbutils.widgets.text("target", "dev")
+dbutils.widgets.text("catalog", "lakeshore_dev")
 target = dbutils.widgets.get("target")
+catalog = dbutils.widgets.get("catalog")
 
+# Fails if the environment's catalog is missing or this identity can't use it.
+spark.sql(f"USE CATALOG {catalog}")
 row = spark.sql("SELECT current_user() AS who, current_catalog() AS catalog").first()
 print(f"target  : {target}")
 print(f"user    : {row.who}")
