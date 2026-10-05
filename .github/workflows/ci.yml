@@ -72,5 +72,12 @@ jobs:
       - name: Who am I?
         run: databricks current-user me --output json | jq -r '"\(.displayName) (\(.userName))"'
 
-      - name: Validate the staging target
-        run: databricks bundle validate --strict --target staging
+      # Both production targets are validated on every PR, with the staging identity:
+      # the prod credentials stay locked behind the prod environment's approval.
+      - name: Validate staging and prod
+        run: |
+          for target in staging prod; do
+            echo "::group::validate $target"
+            databricks bundle validate --strict --target "$target"
+            echo "::endgroup::"
+          done
