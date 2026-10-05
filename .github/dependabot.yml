@@ -3,7 +3,10 @@
 version: 2
 updates:
   - package-ecosystem: github-actions
-    directory: /
+    # Workflows live under / (.github/workflows); our composite action has its own folder.
+    directories:
+      - /
+      - /.github/actions/setup
     schedule:
       interval: weekly
   - package-ecosystem: uv
